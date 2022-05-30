@@ -18,8 +18,8 @@ program STL_bend
    type(vertex_t), pointer :: v1,v2,v3
    real(kind=WP) :: rbuf,rbuf2,R,r1,r2,r3,theta1,theta2,theta3
    real(kind=WP) :: min_x,max_x,min_y,max_y,min_z,max_z,LX,LY,LZ
-   real(kind=WP) :: mean_x,mean_y,mean_z
-   real(kind=WP) :: h1,h2,h3,x1,x2,x3,y1,y2,y3,z1,z2,z3
+   real(kind=WP) :: mean_x,mean_y,mean_z,amd_z,std_z,skew_z,kurt_z
+   real(kind=WP) :: h1,h2,h3,x1,x2,x3,y1,y2,y3,z1,z2,z3,tol
    type(vector3_t), pointer :: normal
    integer :: ios,cmd_narg
    integer(kind=I32) :: ntotalfacet         ! should be of type uint32
@@ -27,7 +27,7 @@ program STL_bend
 
    ! command-line arguments
    cmd_narg = iargc()
-   if (cmd_narg==1) then
+   if (cmd_narg==2) then
       ! 1: initial STL file
       call getarg( 1, sbuf)
       read(sbuf,'(A)',iostat=ios) fname
@@ -41,10 +41,22 @@ program STL_bend
          write(*,*) "Error: file name extension must be '.stl'"
          stop
       end if
+      ! 2: merge tolerance factor
+      call getarg( 2, sbuf)
+      tol = 0.0_WP
+      read(sbuf,*,iostat=ios) tol
+      if (ios.ne.0) then
+         write(*,*) 'Error: could not read merge tolerance factor'
+         stop
+      end if
    else
-      write(*,*) "Error: please give initial STL file name"
+      write(*,*) "Error: please give initial STL file name and merge tolerance factor"
       stop
    end if
+
+   ! write arguments
+   write(*,*) "STL file: "//trim(fname) 
+   write(*,*) "Merge tolerance factor: ",tol
 
    nullify(first_solid)
    nullify(current_solid)
@@ -55,7 +67,7 @@ program STL_bend
    ! -------------------
 
    call read_file_ASCII(fname,first_solid,min_x,max_x,min_y,max_y,min_z,max_z, &
-      mean_x,mean_y,mean_z,ntotalnode,ntotalfacet)
+      mean_x,mean_y,mean_z,amd_z,std_z,skew_z,kurt_z,ntotalnode,ntotalfacet)
 
    ! -------------------
    ! modify geometry
@@ -68,7 +80,8 @@ program STL_bend
    R = LY/(2.0_WP*PI)
    
    !!!! try to properly close the mesh
-   rbuf2 = 2e-3_WP*LY
+   !rbuf2 = 2e-3_WP*LY
+   rbuf2 = tol*LY
 
    nullify(current_solid)
    current_solid => first_solid
@@ -105,7 +118,7 @@ program STL_bend
          else if (r1>LY) then
             r1 = LY
          end if
-         !!!!
+         !!!
 
          h1 = z1-mean_z
          theta1 = 2.0_WP*PI*r1/LY - PI/2.0_WP
@@ -124,7 +137,7 @@ program STL_bend
          else if (r2>LY) then
             r2 = LY
          end if
-         !!!!
+         !!!
 
          h2 = z2-mean_z
          theta2 = 2.0_WP*PI*r2/LY - PI/2.0_WP
@@ -143,7 +156,7 @@ program STL_bend
          else if (r3>LY) then
             r3 = LY
          end if
-         !!!!
+         !!!
 
          h3 = z3-mean_z
          theta3 = 2.0_WP*PI*r3/LY - PI/2.0_WP
@@ -157,6 +170,9 @@ program STL_bend
          rbuf = sqrt(normal%x**2.0_WP+normal%y**2.0_WP+normal%z**2.0_WP)
          if (rbuf<EPS) then
             write(*,*) "Error: norm of facet normal vector = ",rbuf
+            write(*,*) x1,y1,z1
+            write(*,*) x2,y2,z2
+            write(*,*) x3,y3,z3
             stop
          end if
          normal%x = normal%x/rbuf
@@ -188,5 +204,19 @@ program STL_bend
    ! write binary STL file
    ! ---------------------
    call write_file_binary(fname_wext,fname_ext,first_solid,ntotalfacet)
+
+   ! ----------------------------------
+   ! write info about surface roughness
+   ! ----------------------------------
+   write(*,*) 'Min roughness (R_min): ',min_z
+   write(*,*) 'Max roughness (R_max): ',max_z
+   write(*,*) 'Mean roughness (R_mean): ',mean_z
+   write(*,*) 'Arithmetic mean deviation (R_a): ',amd_z
+   write(*,*) 'Standard deviation (R_q): ',std_z
+   write(*,*) 'Max roughness amplitude (R_z): ',max_z-min_z
+   write(*,*) 'Max - Mean (R_p): ',max_z-mean_z
+   write(*,*) 'Mean - Min (R_v): ',mean_z-min_z
+   write(*,*) 'Skewness (s_k): ',skew_z
+   write(*,*) 'Kurtosis (k_u): ',kurt_z
 
 end program STL_bend
