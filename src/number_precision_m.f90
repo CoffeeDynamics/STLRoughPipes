@@ -1,6 +1,6 @@
-! -------------------
+! --------------------------
 ! MODULE: number_precision_m
-! -------------------
+! --------------------------
 
 module number_precision_m
 
@@ -20,8 +20,7 @@ module number_precision_m
 
    private
 
-   public :: INTEGER_KINDS,I8,I16,I32,I64
-   public :: REAL_KINDS,R32,R64,R128
+   public :: INTEGER_KINDS,I8,I16,I32,I64,REAL_KINDS,R32,R64,R128
    
    ! The following declarations ensure:
    !    - at least *_sigd significant digits and

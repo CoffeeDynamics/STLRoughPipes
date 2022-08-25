@@ -53,7 +53,7 @@ module STL_write_m
          open(unit=fid_new,file=trim(fname_new),status='new',action='write',iostat=ios)
       end if
       if (ios.ne.0) then
-         write(*,*) "Error: could not open file "//trim(fname_new)//": iostat = ",ios
+         write(*,'(A,I3)') 'Error: could not open file '//trim(fname_new)//': iostat = ',ios
          stop
       end if
 
@@ -108,9 +108,9 @@ module STL_write_m
       type(facet_t), pointer :: current_facet
       type(vertex_t), pointer :: v1,v2,v3
       type(vector3_t), pointer :: normal
-      integer(kind=I8) :: b_header(80)                    ! should be of type uint8
+      integer(kind=I8) :: b_header(80)                    ! should be of type uint8 according to Standard
       real(kind=R32) :: b_n(3),b_v1(3),b_v2(3),b_v3(3)
-      integer(kind=I16) :: b_attr                         ! should be of type uint16
+      integer(kind=I16) :: b_attr                         ! should be of type uint16 according to Standard
       ! -------------------
 
       fid_new = 2022
@@ -122,7 +122,7 @@ module STL_write_m
          open(unit=fid_new,file=fname_new,access='stream',status='new',action='write',iostat=ios)
       end if
       if (ios.ne.0) then
-         write(*,*) "Error: could not open file "//trim(fname_new)//": iostat = ",ios
+         write(*,'(A,I3)') 'Error: could not open file '//trim(fname_new)//': iostat = ',ios
          stop
       end if
 

@@ -1,15 +1,15 @@
-! -------------------
+! ------------------
 ! MODULE: STL_read_m
-! -------------------
+! ------------------
 
 module STL_read_m
 
-   ! -------------------
+   ! --------------------
    use number_precision_m,   only: WP,I8,I16,I32,R32
    use globals_m,            only: LEN_MAX,PI,EPS,INF
    use topology_m,           only: vertex_t,vector3_t,facet_t,facetList_t,solid_t,solidList_t
    use STL_format_m,         only: keyword
-   ! -------------------
+   ! --------------------
 
    implicit none
 
@@ -23,6 +23,9 @@ module STL_read_m
 
    contains
 
+   !
+   ! The names Kadivar et al. refer to the paper whose DOI is 10.1016/j.ijft.2021.100077
+   !
    subroutine process_ASCII(fname,first_solid,min_x,max_x,min_y,max_y,min_z,max_z, &
       mean_x,mean_y,mean_z,amd_z,std_z,skew_z,kurt_z,ntotalnode,ntotalfacet)
 
@@ -55,7 +58,7 @@ module STL_read_m
       fid = 2020
       inquire(file=trim(fname),exist=fexists)
       if (.not.fexists) then
-         write(*,*) "Error: file "//trim(fname)//" does not exit"
+         write(*,'(A)') 'Error: file '//trim(fname)//' does not exit'
          stop
       end if
 
@@ -88,7 +91,6 @@ module STL_read_m
          if (is_iostat_end(stat)) then
             done = .true.
          else if (stat==0) then
-            !write(*,'(A,I2,A)') "sbuf[",len_trim(sbuf),"] = "//trim(sbuf)
 
             nline = nline + 1
             write(nline_s,'(I10)') nline
@@ -135,15 +137,14 @@ module STL_read_m
             ! 'solid SOLIDNAME'
             if (trim(word(1))==trim(keyword(1))) then
                if (len_trim(word(2))==0) then
-                  write(*,*) "Error: empty solid name"
+                  write(*,'(A)') 'Error: empty solid name'
                   stop
                end if
                if (len_trim(solidName)>0) then
-                  write(*,*) "Error: solid "//trim(solidName)//" still unclosed"
+                  write(*,'(A)') 'Error: solid '//trim(solidName)//' still unclosed'
                   stop
                end if
                solidName = word(2)
-               !write(*,*) "Found keyword ",trim(keyword(1))," (",trim(solidName),") at line ",nline
 
                if (.not.associated(current_solid)) then
                   allocate(first_solid)
@@ -156,36 +157,34 @@ module STL_read_m
                end if
                current_solid%thename = solidName
                current_solid%nfacet = 0
-               !write(*,*) "Added solid ",trim(current_solid%thename)
                nullify(current_facet)
             end if
 
             ! 'endsolid SOLIDNAME'
             if (trim(word(1))==trim(keyword(2))) then
                if (len_trim(solidName)==0) then
-                  write(*,*) "Error: either solid "//trim(word(2))//" has already been closed or was never declared"
+                  write(*,'(A)') 'Error: either solid '//trim(word(2))//' has already been closed or was never declared'
                   stop
                end if
                if (.not.associated(current_solid)) then
-                  write(*,*) "Error: no solid to close"
+                  write(*,'(A)') 'Error: no solid to close'
                   stop
                end if
-               !write(*,*) "Found keyword "//trim(keyword(2))//" ("//trim(solidName)//") at line "//trim(nline_s)
                solidName = ''
             end if
 
             ! 'facet normal X Y Z'
             if (trim(word(1))//" "//trim(word(2))==trim(keyword(3))) then
                if (.not.associated(current_solid)) then
-                  write(*,*) "Error: no solid to attach facet"
+                  write(*,'(A)') 'Error: no solid to attach facet'
                   stop
                end if
                if (facet_open) then
-                  write(*,*) "Error: a facet is not closed"
+                  write(*,'(A)') 'Error: a facet is not closed'
                   stop
                end if
                if (facet_loop_open) then
-                  write(*,*) "Error: a facet loop is not closed"
+                  write(*,'(A)') 'Error: a facet loop is not closed'
                   stop
                end if
                if (.not.associated(current_facet)) then
@@ -205,24 +204,21 @@ module STL_read_m
                read(word(4),*) current_facet%normal%y
                read(word(5),*) current_facet%normal%z
                current_facet%v => current_facet%v1
-               !write(*,*) "Added facet ",trim(current_facet%thename)," (",current_solid%nfacet, &
-               !   ") to solid ",trim(current_solid%thename)
-               !write(*,*) "   Normal: ",current_facet%normal%x,current_facet%normal%y,current_facet%normal%z
                facet_open = .true.
             end if
 
             ! 'endfacet'
             if (trim(word(1))==trim(keyword(4))) then
                if (.not.associated(current_solid)) then
-                  write(*,*) "Error: no solid to close facet for"
+                  write(*,'(A)') 'Error: no solid to close facet for'
                   stop
                end if
                if (.not.facet_open) then
-                  write(*,*) "Error: no facet open"
+                  write(*,'(A)') 'Error: no facet open'
                   stop
                end if
                if (facet_loop_open) then
-                  write(*,*) "Error: a facet loop is still open"
+                  write(*,'(A)') 'Error: a facet loop is still open'
                end if
                facet_open = .false.
             end if
@@ -230,15 +226,15 @@ module STL_read_m
             ! 'outer loop'
             if (trim(word(1))//" "//trim(word(2))==trim(keyword(5))) then
                if (.not.associated(current_solid)) then
-                  write(*,*) "Error: no solid to attach facet loop"
+                  write(*,'(A)') 'Error: no solid to attach facet loop'
                   stop
                end if
                if (.not.facet_open) then
-                  write(*,*) "Error: no facet open"
+                  write(*,'(A)') 'Error: no facet open'
                   stop
                end if
                if (facet_loop_open) then
-                  write(*,*) "Error: a facet loop is not closed"
+                  write(*,'(A)') 'Error: a facet loop is not closed'
                   stop
                end if
                facet_loop_open = .true.
@@ -247,15 +243,15 @@ module STL_read_m
             ! 'endloop'
             if (trim(word(1))==trim(keyword(6))) then
                if (.not.associated(current_solid)) then
-                  write(*,*) "Error: no solid to close facet loop for"
+                  write(*,'(A)') 'Error: no solid to close facet loop for'
                   stop
                end if
                if (.not.facet_open) then
-                  write(*,*) "Error: no facet open"
+                  write(*,'(A)') 'Error: no facet open'
                   stop
                end if
                if (.not.facet_loop_open) then
-                  write(*,*) "Error: no facet loop open"
+                  write(*,'(A)') 'Error: no facet loop open'
                   stop
                end if
                facet_loop_open = .false.
@@ -264,15 +260,15 @@ module STL_read_m
             ! 'vertex X Y Z'
             if (trim(word(1))==trim(keyword(7))) then
                if (.not.associated(current_solid)) then
-                  write(*,*) "Error: no solid to attach vertex"
+                  write(*,'(A)') 'Error: no solid to attach vertex'
                   stop
                end if
                if (.not.facet_open) then
-                  write(*,*) "Error: no facet open"
+                  write(*,'(A)') 'Error: no facet open'
                   stop
                end if
                if (.not.facet_loop_open) then
-                  write(*,*) "Error: no facet loop open"
+                  write(*,'(A)') 'Error: no facet loop open'
                   stop
                end if
 
@@ -292,8 +288,6 @@ module STL_read_m
                mean_x = mean_x + current_facet%v%x
                mean_y = mean_y + current_facet%v%y
                mean_z = mean_z + current_facet%v%z
-
-               !write(*,*) "Added vertex ",current_facet%v%x,current_facet%v%y,current_facet%v%z
 
                if (associated(current_facet%v,current_facet%v1)) then
                   current_facet%v => current_facet%v2 
@@ -332,7 +326,6 @@ module STL_read_m
          if (is_iostat_end(stat)) then
             done = .true.
          else if (stat==0) then
-            !write(*,'(A,I2,A)') "sbuf[",len_trim(sbuf),"] = "//trim(sbuf)
 
             nline = nline + 1
             write(nline_s,'(I10)') nline
@@ -379,15 +372,14 @@ module STL_read_m
             ! 'solid SOLIDNAME'
             if (trim(word(1))==trim(keyword(1))) then
                if (len_trim(word(2))==0) then
-                  write(*,*) "Error: empty solid name"
+                  write(*,'(A)') 'Error: empty solid name'
                   stop
                end if
                if (len_trim(solidName)>0) then
-                  write(*,*) "Error: solid "//trim(solidName)//" still unclosed"
+                  write(*,'(A)') 'Error: solid '//trim(solidName)//' still unclosed'
                   stop
                end if
                solidName = word(2)
-               !write(*,*) "Found keyword ",trim(keyword(1))," (",trim(solidName),") at line ",nline
 
                if (.not.associated(current_solid)) then
                   allocate(first_solid)
@@ -400,36 +392,34 @@ module STL_read_m
                end if
                current_solid%thename = solidName
                current_solid%nfacet = 0
-               !write(*,*) "Added solid ",trim(current_solid%thename)
                nullify(current_facet)
             end if
 
             ! 'endsolid SOLIDNAME'
             if (trim(word(1))==trim(keyword(2))) then
                if (len_trim(solidName)==0) then
-                  write(*,*) "Error: either solid "//trim(word(2))//" has already been closed or was never declared"
+                  write(*,'(A)') 'Error: either solid '//trim(word(2))//' has already been closed or was never declared'
                   stop
                end if
                if (.not.associated(current_solid)) then
-                  write(*,*) "Error: no solid to close"
+                  write(*,'(A)') 'Error: no solid to close'
                   stop
                end if
-               !write(*,*) "Found keyword "//trim(keyword(2))//" ("//trim(solidName)//") at line "//trim(nline_s)
                solidName = ''
             end if
 
             ! 'facet normal X Y Z'
             if (trim(word(1))//" "//trim(word(2))==trim(keyword(3))) then
                if (.not.associated(current_solid)) then
-                  write(*,*) "Error: no solid to attach facet"
+                  write(*,'(A)') 'Error: no solid to attach facet'
                   stop
                end if
                if (facet_open) then
-                  write(*,*) "Error: a facet is not closed"
+                  write(*,'(A)') 'Error: a facet is not closed'
                   stop
                end if
                if (facet_loop_open) then
-                  write(*,*) "Error: a facet loop is not closed"
+                  write(*,'(A)') 'Error: a facet loop is not closed'
                   stop
                end if
                if (.not.associated(current_facet)) then
@@ -449,24 +439,21 @@ module STL_read_m
                read(word(4),*) current_facet%normal%y
                read(word(5),*) current_facet%normal%z
                current_facet%v => current_facet%v1
-               !write(*,*) "Added facet ",trim(current_facet%thename)," (",current_solid%nfacet, &
-               !   ") to solid ",trim(current_solid%thename)
-               !write(*,*) "   Normal: ",current_facet%normal%x,current_facet%normal%y,current_facet%normal%z
                facet_open = .true.
             end if
 
             ! 'endfacet'
             if (trim(word(1))==trim(keyword(4))) then
                if (.not.associated(current_solid)) then
-                  write(*,*) "Error: no solid to close facet for"
+                  write(*,'(A)') 'Error: no solid to close facet for'
                   stop
                end if
                if (.not.facet_open) then
-                  write(*,*) "Error: no facet open"
+                  write(*,'(A)') 'Error: no facet open'
                   stop
                end if
                if (facet_loop_open) then
-                  write(*,*) "Error: a facet loop is still open"
+                  write(*,'(A)') 'Error: a facet loop is still open'
                end if
                facet_open = .false.
             end if
@@ -474,15 +461,15 @@ module STL_read_m
             ! 'outer loop'
             if (trim(word(1))//" "//trim(word(2))==trim(keyword(5))) then
                if (.not.associated(current_solid)) then
-                  write(*,*) "Error: no solid to attach facet loop"
+                  write(*,'(A)') 'Error: no solid to attach facet loop'
                   stop
                end if
                if (.not.facet_open) then
-                  write(*,*) "Error: no facet open"
+                  write(*,'(A)') 'Error: no facet open'
                   stop
                end if
                if (facet_loop_open) then
-                  write(*,*) "Error: a facet loop is not closed"
+                  write(*,'(A)') 'Error: a facet loop is not closed'
                   stop
                end if
                facet_loop_open = .true.
@@ -491,15 +478,15 @@ module STL_read_m
             ! 'endloop'
             if (trim(word(1))==trim(keyword(6))) then
                if (.not.associated(current_solid)) then
-                  write(*,*) "Error: no solid to close facet loop for"
+                  write(*,'(A)') 'Error: no solid to close facet loop for'
                   stop
                end if
                if (.not.facet_open) then
-                  write(*,*) "Error: no facet open"
+                  write(*,'(A)') 'Error: no facet open'
                   stop
                end if
                if (.not.facet_loop_open) then
-                  write(*,*) "Error: no facet loop open"
+                  write(*,'(A)') 'Error: no facet loop open'
                   stop
                end if
                facet_loop_open = .false.
@@ -508,15 +495,15 @@ module STL_read_m
             ! 'vertex X Y Z'
             if (trim(word(1))==trim(keyword(7))) then
                if (.not.associated(current_solid)) then
-                  write(*,*) "Error: no solid to attach vertex"
+                  write(*,'(A)') 'Error: no solid to attach vertex'
                   stop
                end if
                if (.not.facet_open) then
-                  write(*,*) "Error: no facet open"
+                  write(*,'(A)') 'Error: no facet open'
                   stop
                end if
                if (.not.facet_loop_open) then
-                  write(*,*) "Error: no facet loop open"
+                  write(*,'(A)') 'Error: no facet loop open'
                   stop
                end if
 
@@ -531,8 +518,6 @@ module STL_read_m
                std_z = std_z + (current_facet%v%z-mean_z)**2.0_WP
                skew_z = skew_z + (current_facet%v%z-mean_z)**3.0_WP
                kurt_z = kurt_z + (current_facet%v%z-mean_z)**4.0_WP
-
-               !write(*,*) "Added vertex ",current_facet%v%x,current_facet%v%y,current_facet%v%z
 
                if (associated(current_facet%v,current_facet%v1)) then
                   current_facet%v => current_facet%v2 
@@ -552,15 +537,15 @@ module STL_read_m
       ! end of second loop
 
       if (len_trim(solidName)>0) then
-         write(*,*) "Error: EOF reached but solid "//trim(solidName)//" is unclosed"
+         write(*,'(A)') 'Error: EOF reached but solid '//trim(solidName)//' is unclosed'
          stop
       end if
       if (facet_open) then
-         write(*,*) "Error: EOF reached but a facet is open"
+         write(*,'(A)') 'Error: EOF reached but a facet is open'
          stop
       end if
       if (facet_loop_open) then
-         write(*,*) "Error: EOF reached but a facet loop is open"
+         write(*,'(A)') 'Error: EOF reached but a facet loop is open'
          stop
       end if
 
