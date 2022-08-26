@@ -91,13 +91,10 @@ module STL_read_m
          if (is_iostat_end(stat)) then
             done = .true.
          else if (stat==0) then
-
             nline = nline + 1
             write(nline_s,'(I10)') nline
-            
             word(1:5) = ''
             space(1:4) = 0
-
             done2 = .false.
             i = 0
             nspaces = 0
@@ -108,7 +105,9 @@ module STL_read_m
                else
                   i = i + j
                   nspaces = nspaces + 1
-                  space(nspaces) = i
+                  if (nspaces.le.size(space)) then
+                     space(nspaces) = i
+                  end if
                end if
             end do
 
@@ -343,7 +342,9 @@ module STL_read_m
                else
                   i = i + j
                   nspaces = nspaces + 1
-                  space(nspaces) = i
+                  if (nspaces.le.size(space)) then
+                     space(nspaces) = i
+                  end if
                end if
             end do
 

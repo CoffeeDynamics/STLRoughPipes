@@ -6,19 +6,12 @@
 ! Usage:                                                                                !
 !    ./STL_bend.exe surface.stl mergeTolFactor                                          !
 !                                                                                       !
-! Produces:                                                                             !
-!    surface_new_ASCII.stl and surface_new_binary.stl                                   !
-!                                                                                       !
-! Tip:                                                                                  !
-!    1e-3 for mergeTolFactor usually works fine to close the cylinder                   !
-!                                                                                       !
 ! Authors:                                                                              !
 !    Guillaume Sahut, Ph.D. and Himani Garg, Ph.D.                                      !
 !    Lund University, Department of Energy Sciences                                     !
 !    Sweden                                                                             !
 !                                                                                       !
-! Contact:                                                                              !
-!    guillaume.sahut@energy.lth.se                                                      !
+! See README.md for more information
 ! ------------------------------------------------------------------------------------- !
 
 !
