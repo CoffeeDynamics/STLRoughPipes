@@ -5,11 +5,11 @@ STL_bend
 <b>This program bends an (ASCII) STL surface around the X-axis to produce a cylinder and writes the result in (ASCII and binary) STL format</b>
 
 Compilation using gfortran:<br />
-&nbsp;&nbsp;&nbsp;make
+<pre>make</pre>
 
 Usage:<br />
-&nbsp;&nbsp;&nbsp;cd run
-&nbsp;&nbsp;&nbsp;../bin/STL_bend.exe rough.stl 1e-3
+<pre>cd run
+../bin/STL_bend.exe rough.stl 1e-3</pre>
    
 Tip:<br />
 &nbsp;&nbsp;&nbsp;1e-3 as merge tolerance factor usually works fine to close the cylinder 
