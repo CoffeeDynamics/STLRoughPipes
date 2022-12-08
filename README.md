@@ -9,18 +9,20 @@ Compilation using gfortran:<br />
 
 Usage:<br />
 <pre>cd run
-../bin/STL_bend.exe rough.stl 1e-3</pre>
+../bin/STL_bend.exe rough.stl mergeToleranceFactor
+../bin/STL_bend.exe rough.stl mergeToleranceFactor [roughnessFactor]</pre>
    
-Tip:<br />
-&nbsp;&nbsp;&nbsp;1e-3 as merge tolerance factor usually works fine to close the cylinder 
+Tips:<br />
+&nbsp;&nbsp;&nbsp;- The value 1e-3 for mergeToleranceFactor usually works fine to close the cylinder 
+&nbsp;&nbsp;&nbsp;- The optional argument roughnessFactor can be used to rescale the pipe surface roughness (default value: 1)
 
 Produces:<br />
 &nbsp;&nbsp;&nbsp;rough_new_ASCII.stl and rough_new_binary.stl
 
 Authors:<br />
 &nbsp;&nbsp;&nbsp;Guillaume Sahut, Ph.D. and Himani Garg, Ph.D.<br />
-&nbsp;&nbsp;&nbsp;Lund University, Department of Energy Sciences<br />
-&nbsp;&nbsp;&nbsp;Sweden
+&nbsp;&nbsp;&nbsp;Department of Energy Sciences, Lund University<br />
+&nbsp;&nbsp;&nbsp;Lund, Sweden
 
 Contact:<br />
 &nbsp;&nbsp;&nbsp;guillaume.sahut@energy.lth.se

@@ -4,14 +4,14 @@
 ! ------------------------------------------------------------------------------------- !
 !                                                                                       !
 ! Usage:                                                                                !
-!    ./STL_bend.exe surface.stl mergeTolFactor                                          !
+!    ./STL_bend.exe surface.stl mergeTolFactor [roughnessFactor]                        !
 !                                                                                       !
 ! Authors:                                                                              !
 !    Guillaume Sahut, Ph.D. and Himani Garg, Ph.D.                                      !
-!    Lund University, Department of Energy Sciences                                     !
-!    Sweden                                                                             !
+!    Department of Energy Sciences, Lund University                                     !
+!    Lund, Sweden                                                                       !
 !                                                                                       !
-! See README.md for more information
+! See README.md for more information                                                    !
 ! ------------------------------------------------------------------------------------- !
 
 !
@@ -41,14 +41,18 @@ program STL_bend
    real(kind=WP) :: min_x,max_x,min_y,max_y,min_z,max_z,LX,LY,LZ
    real(kind=WP) :: mean_x,mean_y,mean_z,amd_z,std_z,skew_z,kurt_z
    real(kind=WP) :: h1,h2,h3,x1,x2,x3,y1,y2,y3,z1,z2,z3,tol
+   real(kind=WP) :: roughness_factor
    type(vector3_t), pointer :: normal
    integer :: ios,cmd_narg
    integer(kind=I32) :: ntotalfacet         ! should be of type uint32 according to Standard
    !-----------------------
 
+   ! initialisation
+   roughness_factor = 1.0_WP
+   
    ! command-line arguments
    cmd_narg = iargc()
-   if (cmd_narg==2) then
+   if (cmd_narg>=2) then
 
       ! 1: initial STL file
       call getarg( 1, sbuf)
@@ -73,14 +77,30 @@ program STL_bend
          stop
       end if
 
+      if (cmd_narg==3) then
+         
+         ! 3: roughness factor
+         call getarg( 3, sbuf)
+         read(sbuf,*,iostat=ios) roughness_factor
+         if (ios.ne.0) then
+            write(*,'(A)') 'Error: could not read roughness factor'
+            stop
+         end if
+      
+      else if (cmd_narg>3) then
+         write(*,'(A)') 'Error: too many arguments'
+         stop
+      end if
+
    else
-      write(*,'(A)') 'Error: please give initial STL file name and merge tolerance factor'
+      write(*,'(A)') 'Error: please give at least initial STL file name and merge tolerance factor'
       stop
    end if
 
    ! write arguments
    write(*,'(A)') 'STL file:                            '//trim(fname) 
    write(*,'(A,X,ES22.15)') 'Merge tolerance factor:            ',tol
+   write(*,'(A,X,ES22.15)') 'Roughness factor:                  ',roughness_factor
    
    nullify(first_solid)
    nullify(current_solid)
@@ -153,6 +173,7 @@ program STL_bend
          end if
 
          h1 = z1-mean_z
+         h1 = h1*roughness_factor
          theta1 = 2.0_WP*PI*r1/LY - PI/2.0_WP
          y1 = (R-h1)*cos(theta1)
          z1 = (R-h1)*sin(theta1)+R+max_z
@@ -173,6 +194,7 @@ program STL_bend
          end if
 
          h2 = z2-mean_z
+         h2 = h2*roughness_factor
          theta2 = 2.0_WP*PI*r2/LY - PI/2.0_WP
          y2 = (R-h2)*cos(theta2)
          z2 = (R-h2)*sin(theta2)+R+max_z
@@ -193,6 +215,7 @@ program STL_bend
          end if
 
          h3 = z3-mean_z
+         h3 = h3*roughness_factor
          theta3 = 2.0_WP*PI*r3/LY - PI/2.0_WP
          y3 = (R-h3)*cos(theta3)
          z3 = (R-h3)*sin(theta3)+R+max_z
