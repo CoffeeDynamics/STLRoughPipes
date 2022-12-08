@@ -13,7 +13,7 @@ Usage:<br />
 ../bin/STL_bend.exe rough.stl mergeToleranceFactor [roughnessFactor]</pre>
    
 Tips:<br />
-&nbsp;&nbsp;&nbsp;- The value 1e-3 for mergeToleranceFactor usually works fine to close the cylinder 
+&nbsp;&nbsp;&nbsp;- The value 1e-3 for mergeToleranceFactor usually works fine to close the cylinder<br /> 
 &nbsp;&nbsp;&nbsp;- The optional argument roughnessFactor can be used to rescale the pipe surface roughness (default value: 1)
 
 Produces:<br />
