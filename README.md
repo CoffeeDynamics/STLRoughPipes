@@ -19,6 +19,9 @@ Tips:<br />
 Produces:<br />
 &nbsp;&nbsp;&nbsp;rough_new_ASCII.stl and rough_new_binary.stl
 
+This code is free to use. If you use it, please cite the paper:<br />
+H. Garg, L. Wang, G. Sahut and C. Fureby, "Large eddy simulations of fully developed turbulent flows over additively manufactured rough surfaces," Phys. Fluids, 35(4):045145, 2023. DOI: https://doi.org/10.1063/5.0143863
+
 Authors:<br />
 &nbsp;&nbsp;&nbsp;Guillaume Sahut, Ph.D. and Himani Garg, Ph.D.<br />
 &nbsp;&nbsp;&nbsp;Department of Energy Sciences, Lund University<br />
