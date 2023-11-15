@@ -318,6 +318,7 @@ module STL_read_m
       facet_loop_open = .false.
       amd_z = 0.0_WP
       std_z = 0.0_WP
+      ntotalnode = 0
 
       do while (.not.done)
          read(unit=fid,fmt='(A)',iostat=stat) sbuf
