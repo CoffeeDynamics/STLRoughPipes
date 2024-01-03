@@ -227,11 +227,12 @@ program STL_bend
          normal%z = (x2-x1)*(y3-y1) - (y2-y1)*(x3-x1)
          rbuf = sqrt(normal%x**2.0_WP+normal%y**2.0_WP+normal%z**2.0_WP)
          if (rbuf<EPS) then
-            write(*,'(A,ES22.15)') 'Error: norm of facet normal vector = ',rbuf
+            rbuf = EPS
+            write(*,'(A,ES22.15)') 'WARNING: Magnitude of triangle normal vector has been set to ',rbuf
+            write(*,'(A)')         '         Triangle vertex coordinates are:'
             write(*,'(3ES22.15)') x1,y1,z1
             write(*,'(3ES22.15)') x2,y2,z2
             write(*,'(3ES22.15)') x3,y3,z3
-            stop
          end if
          normal%x = normal%x/rbuf
          normal%y = normal%y/rbuf
