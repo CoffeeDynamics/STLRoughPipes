@@ -28,4 +28,4 @@ Authors:<br />
 &nbsp;&nbsp;&nbsp;Lund, Sweden
 
 Contact:<br />
-&nbsp;&nbsp;&nbsp;guillaume.sahut@energy.lth.se
+&nbsp;&nbsp;&nbsp;himani.garg@energy.lth.se
