@@ -17,8 +17,8 @@ Tips:<br />
 &nbsp;&nbsp;&nbsp;- The optional argument roughnessFactor can be used to rescale the surface roughness prior to rotation
 
 Produces:<br />
-&nbsp;&nbsp;&nbsp;rough_new_ASCII.stl and rough_new_binary.stl,
-and, if rescaling of roughness is required,
+&nbsp;&nbsp;&nbsp;rough_new_ASCII.stl and rough_new_binary.stl,<br />
+and, if rescaling of roughness is required,<br />
 &nbsp;&nbsp;&nbsp;rough_initial_rescaled_ASCII.stl
 
 This code is free to use. If you use it, please cite the paper:<br />
