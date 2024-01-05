@@ -1,18 +1,19 @@
-! ------------------------------------------------------------------------------------- !
-!   This program bends an (ASCII) STL surface around the X-axis to produce a cylinder   !
-!   and writes the result in (ASCII and binary) STL format                              !
-! ------------------------------------------------------------------------------------- !
-!                                                                                       !
-! Usage:                                                                                !
-!    ./STL_bend.exe surface.stl mergeTolFactor [roughnessFactor]                        !
-!                                                                                       !
-! Authors:                                                                              !
-!    Guillaume Sahut, Ph.D. and Himani Garg, Ph.D.                                      !
-!    Department of Energy Sciences, Lund University                                     !
-!    Lund, Sweden                                                                       !
-!                                                                                       !
-! See README.md for more information                                                    !
-! ------------------------------------------------------------------------------------- !
+! --------------------------------------------------------------------------------------- !
+!   This program bends an (ASCII) STL surface around the X-axis to produce a cylinder     !
+!   and writes the result in (ASCII and binary) STL format. Optionnally, the roughness    !
+!   of the planar surface (along the Z-axis) can be rescaled prior to rotation. In that   !
+!   case, the rescaled planar surface is also written in (ASCII) STL format.              !
+! --------------------------------------------------------------------------------------- !
+!                                                                                         !
+! Usage:                                                                                  !
+!    ./STL_bend.exe surface.stl mergeTolFactor [roughnessFactor]                          !
+!                                                                                         !
+! Authors:                                                                                !
+!    Guillaume Sahut, Ph.D. and Himani Garg, Ph.D.                                        !
+!    Department of Energy Sciences, Lund University, Lund, Sweden                         !
+!                                                                                         !
+! See README.md for more information including contact email address                      !
+! --------------------------------------------------------------------------------------- !
 
 !
 ! Hereafter, 'Standard' refers to the STL file format available at
@@ -24,8 +25,10 @@ program STL_bend
    ! -------------------
    use number_precision_m, only: WP,I32
    use globals_m,          only: LEN_MAX,EPS,PI
-   use topology_m,         only: vertex_t,vector3_t,facet_t,facetList_t,solid_t,solidList_t
+   use topology_m,         only: vertex_t,vector3_t,facet_t,solid_t
    use STL_read_m,         only: read_file_ASCII
+   use STL_rescale_m,      only: rescale_roughness_height
+   use STL_statistics_m,   only: compute_statistics
    use STL_write_m,        only: write_file_ASCII,write_file_binary
    ! -------------------
 
@@ -40,6 +43,8 @@ program STL_bend
    real(kind=WP) :: rbuf,rbuf2,R,r1,r2,r3,theta1,theta2,theta3
    real(kind=WP) :: min_x,max_x,min_y,max_y,min_z,max_z,LX,LY,LZ
    real(kind=WP) :: mean_x,mean_y,mean_z,amd_z,std_z,skew_z,kurt_z
+   real(kind=WP) :: min_x_0,max_x_0,min_y_0,max_y_0,min_z_0,max_z_0
+   real(kind=WP) :: mean_x_0,mean_y_0,mean_z_0,amd_z_0,std_z_0,skew_z_0,kurt_z_0
    real(kind=WP) :: h1,h2,h3,x1,x2,x3,y1,y2,y3,z1,z2,z3,tol
    real(kind=WP) :: roughness_factor
    type(vector3_t), pointer :: normal
@@ -110,13 +115,56 @@ program STL_bend
    ! read ASCII STL file
    ! -------------------
 
-   call read_file_ASCII(fname,first_solid,min_x,max_x,min_y,max_y,min_z,max_z, &
-      mean_x,mean_y,mean_z,amd_z,std_z,skew_z,kurt_z,ntotalnode,ntotalfacet)
-
-   ! -------------------
-   ! modify geometry
-   ! -------------------
+   call read_file_ASCII(fname,first_solid,ntotalnode,ntotalfacet)
    
+   ! ---------------------------------------
+   ! compute statistics of surface roughness
+   ! ---------------------------------------
+
+   call compute_statistics(first_solid,ntotalnode,min_x,max_x,min_y,max_y,min_z,max_z, &
+      mean_x,mean_y,mean_z,amd_z,std_z,skew_z,kurt_z)
+
+   ! ------------------------
+   ! rescale roughness height
+   ! ------------------------
+
+   ! if roughness_factor is given as third argument
+   if (cmd_narg == 3) then
+
+      ! save initial values
+      min_x_0 = min_x
+      max_x_0 = max_x
+      min_y_0 = min_y
+      max_y_0 = max_y
+      min_z_0 = min_z
+      max_z_0 = max_z
+      mean_x_0 = mean_x
+      mean_y_0 = mean_y
+      mean_z_0 = mean_z
+      amd_z_0 = amd_z
+      std_z_0 = std_z
+      skew_z_0 = skew_z
+      kurt_z_0 = kurt_z
+
+      ! rescale surface height
+      call rescale_roughness_height(first_solid,mean_z,roughness_factor)
+
+      ! recompute statistics of surface roughness
+      call compute_statistics(first_solid,ntotalnode,min_x,max_x,min_y,max_y,min_z,max_z, &
+         mean_x,mean_y,mean_z,amd_z,std_z,skew_z,kurt_z)
+
+      ! write rescaled planar surface
+      call write_file_ASCII(fname_wext,fname_ext,first_solid,opt_fname_suffix='_initial_rescaled_ASCII')
+      !call write_file_binary(fname_wext,fname_ext,first_solid,ntotalfacet,opt_fname_suffix='_initial_rescaled_binary')
+   
+   end if
+
+   ! --------------------------------
+   ! apply rotation around the X-axis
+   ! --------------------------------
+   
+   write(*,'(A)',advance='yes') 'Applying rotation around the X-axis... '
+
    ! bounding box
    LX = max_x - min_x
    LY = max_y - min_y
@@ -173,7 +221,6 @@ program STL_bend
          end if
 
          h1 = z1-mean_z
-         h1 = h1*roughness_factor
          theta1 = 2.0_WP*PI*r1/LY - PI/2.0_WP
          y1 = (R-h1)*cos(theta1)
          z1 = (R-h1)*sin(theta1)+R+max_z
@@ -194,7 +241,6 @@ program STL_bend
          end if
 
          h2 = z2-mean_z
-         h2 = h2*roughness_factor
          theta2 = 2.0_WP*PI*r2/LY - PI/2.0_WP
          y2 = (R-h2)*cos(theta2)
          z2 = (R-h2)*sin(theta2)+R+max_z
@@ -215,7 +261,6 @@ program STL_bend
          end if
 
          h3 = z3-mean_z
-         h3 = h3*roughness_factor
          theta3 = 2.0_WP*PI*r3/LY - PI/2.0_WP
          y3 = (R-h3)*cos(theta3)
          z3 = (R-h3)*sin(theta3)+R+max_z
@@ -254,6 +299,8 @@ program STL_bend
       current_solid => current_solid%next
    end do
 
+   write(*,'(A)') '  ...  Done.'
+
    ! --------------------
    ! write ASCII STL file
    ! --------------------
@@ -267,15 +314,34 @@ program STL_bend
    ! ----------------------------------
    ! write info about surface roughness
    ! ----------------------------------
-   write(*,'(A,X,ES22.15)') 'Min roughness (R_min):             ',min_z
-   write(*,'(A,X,ES22.15)') 'Max roughness (R_max):             ',max_z
-   write(*,'(A,X,ES22.15)') 'Mean roughness (R_mean):           ',mean_z
-   write(*,'(A,X,ES22.15)') 'Arithmetic mean deviation (R_a):   ',amd_z
-   write(*,'(A,X,ES22.15)') 'Standard deviation (R_q):          ',std_z
-   write(*,'(A,X,ES22.15)') 'Max roughness amplitude (R_z):     ',max_z-min_z
-   write(*,'(A,X,ES22.15)') 'Max - Mean (R_p):                  ',max_z-mean_z
-   write(*,'(A,X,ES22.15)') 'Mean - Min (R_v):                  ',mean_z-min_z
-   write(*,'(A,X,ES22.15)') 'Skewness (s_k):                    ',skew_z
-   write(*,'(A,X,ES22.15)') 'Kurtosis (k_u):                    ',kurt_z
+   write(*,'(A)') ''
+   if (cmd_narg == 3) then
+      write(*,'(A)') '== STATISTICS OF THE INITIAL SURFACE HEIGHT (before rotation) =='
+      write(*,'(A,X,ES22.15)') '   Min roughness (R_min):             ',min_z_0
+      write(*,'(A,X,ES22.15)') '   Max roughness (R_max):             ',max_z_0
+      write(*,'(A,X,ES22.15)') '   Mean roughness (R_mean):           ',mean_z_0
+      write(*,'(A,X,ES22.15)') '   Arithmetic mean deviation (R_a):   ',amd_z_0
+      write(*,'(A,X,ES22.15)') '   Standard deviation (R_q):          ',std_z_0
+      write(*,'(A,X,ES22.15)') '   Max roughness amplitude (R_z):     ',max_z_0-min_z_0
+      write(*,'(A,X,ES22.15)') '   Max - Mean (R_p):                  ',max_z_0-mean_z_0
+      write(*,'(A,X,ES22.15)') '   Mean - Min (R_v):                  ',mean_z_0-min_z_0
+      write(*,'(A,X,ES22.15)') '   Skewness (s_k):                    ',skew_z_0
+      write(*,'(A,X,ES22.15)') '   Kurtosis (k_u):                    ',kurt_z_0
+      write(*,'(A)') ''
+      write(*,'(A)') '== STATISTICS OF THE RESCALED SURFACE HEIGHT (before rotation) =='
+   else   
+      write(*,'(A)') '== STATISTICS OF THE SURFACE HEIGHT (before rotation) =='
+   end if
+   
+   write(*,'(A,X,ES22.15)') '   Min roughness (R_min):             ',min_z
+   write(*,'(A,X,ES22.15)') '   Max roughness (R_max):             ',max_z
+   write(*,'(A,X,ES22.15)') '   Mean roughness (R_mean):           ',mean_z
+   write(*,'(A,X,ES22.15)') '   Arithmetic mean deviation (R_a):   ',amd_z
+   write(*,'(A,X,ES22.15)') '   Standard deviation (R_q):          ',std_z
+   write(*,'(A,X,ES22.15)') '   Max roughness amplitude (R_z):     ',max_z-min_z
+   write(*,'(A,X,ES22.15)') '   Max - Mean (R_p):                  ',max_z-mean_z
+   write(*,'(A,X,ES22.15)') '   Mean - Min (R_v):                  ',mean_z-min_z
+   write(*,'(A,X,ES22.15)') '   Skewness (s_k):                    ',skew_z
+   write(*,'(A,X,ES22.15)') '   Kurtosis (k_u):                    ',kurt_z
 
 end program STL_bend

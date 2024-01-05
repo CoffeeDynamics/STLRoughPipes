@@ -7,7 +7,7 @@ module STL_write_m
    ! -------------------
    use number_precision_m,   only: WP,I8,I16,I32,R32
    use globals_m,            only: LEN_MAX,PI,EPS,INF
-   use topology_m,           only: vertex_t,vector3_t,facet_t,facetList_t,solid_t,solidList_t
+   use topology_m,           only: vertex_t,vector3_t,facet_t,solid_t
    use STL_format_m,         only: keyword
    ! -------------------
 
@@ -27,15 +27,17 @@ module STL_write_m
 
    contains
 
-   subroutine process_ASCII(fname_wext,fname_ext,first_solid)
+   subroutine process_ASCII(fname_wext,fname_ext,first_solid,opt_fname_suffix)
 
       implicit none
 
       ! -------------------
       character(len=LEN_MAX), intent(in) :: fname_wext,fname_ext
       type(solid_t), pointer, intent(in) :: first_solid
+      character(len=*), optional, intent(in) :: opt_fname_suffix
       ! -------------------
       character(len=LEN_MAX) :: fname_new
+      character(len=LEN_MAX) :: fname_suffix
       integer :: fid_new,ios
       logical :: fexists
       type(solid_t), pointer :: current_solid
@@ -45,7 +47,14 @@ module STL_write_m
       ! -------------------
 
       fid_new = 2021
-      fname_new = trim(fname_wext)//'_new_ASCII'//trim(fname_ext)
+      fname_suffix = '_new_ASCII'
+      if (present(opt_fname_suffix)) then
+         fname_suffix = opt_fname_suffix
+      end if
+      fname_new = trim(fname_wext)//trim(fname_suffix)//trim(fname_ext)
+      
+      write(*,'(A)',advance='no') "Writing ASCII file '"//trim(fname_new)//"'... "
+      
       inquire(file=trim(fname_new),exist=fexists)
       if (fexists) then
          open(unit=fid_new,file=trim(fname_new),status='replace',action='write',iostat=ios)
@@ -90,9 +99,11 @@ module STL_write_m
 
       close(fid_new)
 
+      write(*,'(A)') 'Done.'
+
    end subroutine process_ASCII
 
-   subroutine process_binary(fname_wext,fname_ext,first_solid,ntotalfacet)
+   subroutine process_binary(fname_wext,fname_ext,first_solid,ntotalfacet,opt_fname_suffix)
 
       implicit none
 
@@ -100,8 +111,10 @@ module STL_write_m
       character(len=LEN_MAX), intent(in) :: fname_wext,fname_ext
       type(solid_t), pointer, intent(in) :: first_solid
       integer(kind=I32), intent(in) :: ntotalfacet
+      character(len=*), optional, intent(in) :: opt_fname_suffix
       ! -------------------
       character(len=LEN_MAX) :: fname_new
+      character(len=LEN_MAX) :: fname_suffix
       integer :: fid_new,ios
       logical :: fexists
       type(solid_t), pointer :: current_solid
@@ -114,7 +127,14 @@ module STL_write_m
       ! -------------------
 
       fid_new = 2022
-      fname_new = trim(fname_wext)//'_new_binary'//trim(fname_ext)
+      fname_suffix = '_new_binary'
+      if (present(opt_fname_suffix)) then
+         fname_suffix = opt_fname_suffix
+      end if
+      fname_new = trim(fname_wext)//trim(fname_suffix)//trim(fname_ext)
+      
+      write(*,'(A)',advance='no') "Writing binary file '"//trim(fname_new)//"'... "
+      
       inquire(file=trim(fname_new),exist=fexists)
       if (fexists) then
          open(unit=fid_new,file=fname_new,access='stream',status='replace',action='write',iostat=ios)
@@ -157,6 +177,8 @@ module STL_write_m
       end do
 
       close(fid_new)
+
+      write(*,'(A)') 'Done.'
 
    end subroutine process_binary
 

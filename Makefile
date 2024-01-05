@@ -30,6 +30,8 @@ $(EXE):
 	$(FC) $(FCFLAGS) -I$(OBJDIR) -o $(OBJDIR)/topology_m.o -c $(SRCDIR)/topology_m.f90
 	$(FC) $(FCFLAGS) -I$(OBJDIR) -o $(OBJDIR)/STL_format_m.o -c $(SRCDIR)/STL_format_m.f90
 	$(FC) $(FCFLAGS) -I$(OBJDIR) -o $(OBJDIR)/STL_read_m.o -c $(SRCDIR)/STL_read_m.f90
+	$(FC) $(FCFLAGS) -I$(OBJDIR) -o $(OBJDIR)/STL_rescale_m.o -c $(SRCDIR)/STL_rescale_m.f90
+	$(FC) $(FCFLAGS) -I$(OBJDIR) -o $(OBJDIR)/STL_statistics_m.o -c $(SRCDIR)/STL_statistics_m.f90
 	$(FC) $(FCFLAGS) -I$(OBJDIR) -o $(OBJDIR)/STL_write_m.o -c $(SRCDIR)/STL_write_m.f90
 	$(FC) $(FCFLAGS) -I$(OBJDIR) -o $(OBJDIR)/STL_bend.o -c $(SRCDIR)/STL_bend.f90
 	$(FC) $(FCFLAGS) -I$(OBJDIR) -o $(BINDIR)/$(EXE) $(OBJDIR)/*.o
